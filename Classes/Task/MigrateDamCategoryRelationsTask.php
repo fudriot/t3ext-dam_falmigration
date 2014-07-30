@@ -52,9 +52,16 @@ class MigrateDamCategoryRelationsTask extends AbstractTask {
 		if ($this->isTableAvailable('tx_dam_mm_ref')) {
 			$categoryRelations = $this->getCategoryRelationsWhereSysCategoryExists();
 			foreach ($categoryRelations as $categoryRelation) {
+
+				$file = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance()->getFileObject($categoryRelation['sys_file_uid']);
+				$metadata = $file->_getMetaData();
+				if ((int)$metadata['uid'] < 1) {
+					throw new \Exception('I could not find a metadata identifier for file ' . $categoryRelation['sys_file_uid'], 1406735899);
+				}
+
 				$insertData = array(
 					'uid_local' => $categoryRelation['sys_category_uid'],
-					'uid_foreign' => $categoryRelation['sys_file_uid'],
+					'uid_foreign' => $metadata['uid'],
 					'sorting' => $categoryRelation['sorting'],
 					'sorting_foreign' => $categoryRelation['sorting_foreign'],
 					'tablenames' => 'sys_file_metadata',
